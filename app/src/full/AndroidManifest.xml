@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- Enabling "notification access" for this service is what lets the full edition see
+             and control the media sessions of other apps (song title, app name, play/pause/skip).
+             Note: Play Protect blocks sideloading apps that declare this; install via USB (adb). -->
+        <service
+            android:name=".media.MediaNotificationListener"
+            android:exported="true"
+            android:label="MusicPartner music control"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+    </application>
+</manifest>

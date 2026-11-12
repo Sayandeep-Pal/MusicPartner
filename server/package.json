@@ -1,0 +1,17 @@
+{
+  "name": "musicpartner-relay",
+  "version": "0.1.0",
+  "private": true,
+  "description": "WebSocket relay that streams audio from a MusicPartner host phone to listeners and relays play/pause/skip commands back.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test/smoke.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "ws": "8.18.0"
+  }
+}
