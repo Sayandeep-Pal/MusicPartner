@@ -1,5 +1,6 @@
 package com.musicpartner.capture
 
+import com.musicpartner.BuildConfig
 import android.annotation.SuppressLint
 import android.app.Service
 import android.content.Context
@@ -188,7 +189,11 @@ class CaptureService : Service() {
         super.onDestroy()
     }
 
-    private fun title() = if (mode == MODE_HOST) "Sharing your music" else "Capture test"
+    private fun title() = when {
+        mode != MODE_HOST -> "Capture test"
+        BuildConfig.FULL_EDITION -> "Sharing your music"
+        else -> "In Sync With You · sharing 💞"
+    }
 
     private fun updateNotification() {
         if (!running) return
@@ -383,7 +388,7 @@ internal class CaptureVerdict {
         val silentFor = now - lastSoundAt
         return when {
             playing == true && silentFor > 4000 && now - playingSince > 4000 ->
-                "⚠ $name is playing but no sound is reaching MusicPartner. This app most likely blocks audio capture (or its volume is 0)."
+                "⚠ $name is playing but no sound is reaching this app. This app most likely blocks audio capture (or its volume is 0)."
             playing == null && silentFor > 4000 ->
                 "No sound captured. Play something. (Turn on notification access so I can tell which app is playing.)"
             silentFor > 1000 -> "Waiting for sound… play something in any app."

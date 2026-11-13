@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A heart with two sound waves (pink + neon) moving together. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <path
+        android:fillColor="#FFFFFF"
+        android:strokeColor="#E75480"
+        android:strokeWidth="2.5"
+        android:pathData="M54,80 C54,80 28,64 28,46 C28,37.5 34.5,31 42.5,31 C47.5,31 51.5,34 54,38.5 C56.5,34 60.5,31 65.5,31 C73.5,31 80,37.5 80,46 C80,64 54,80 54,80 Z" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#E75480"
+        android:strokeWidth="3.6"
+        android:strokeLineCap="round"
+        android:pathData="M34,52 Q38.5,42 43,52 T52,52 T61,52 T70,52 T74,50" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#00C97A"
+        android:strokeWidth="2.4"
+        android:strokeLineCap="round"
+        android:pathData="M34,55 Q38.5,45 43,55 T52,55 T61,55 T70,55 T74,53" />
+</vector>

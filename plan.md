@@ -1,5 +1,7 @@
 # MusicPartner — Plan & Progress
 
+> The Lite edition is named **In Sync With You** (renamed 2026-11-13). It is a private app for two people. The code and the Full edition still use the name "MusicPartner".
+
 _Last updated: 2026-11-12_
 
 ## 1. The idea
@@ -34,8 +36,28 @@ Play Protect's fraud protection **blocks** sideloaded APKs (sent through WhatsAp
 | Play/pause/skip from both phones | ✅ via media-button events (like Bluetooth headphones) to the last-playing app | ✅ via MediaSession transport controls |
 | Song title / app name shown | ❌ only "Music is playing / Paused" | ✅ |
 | Capture verdict | ✅ (uses `AudioManager.isMusicActive`) | ✅ |
+| Looks | 🎀 **Princess** or ⌨ **Techie** mode (chosen on the start screen each launch) | Classic (follows the system light/dark setting) |
 
 The two editions have different package names, so both can be installed on one phone. They talk to each other normally (same protocol).
+
+### Lite looks: Princess and Techie modes (added 2026-11-13)
+The Lite edition has two looks. You choose one on the start screen each time the app opens. There is no switch on the main screen. The last choice is saved (`Prefs.vibe`) and used when the chooser is skipped (for example, while a session is running). They only change appearance. Streaming and controls work the same in both, and a Princess phone and a Techie phone can share a room.
+
+| | 🎀 Princess | ⌨ Techie |
+|---|---|---|
+| Colors | Pastel pink to lavender gradient, white cards with pink borders, deep-pink accents | Terminal black, neon green (#00FF9C) and cyan accents, green-outlined cards |
+| Shapes | Very round (28 dp corners) | Sharp (3 dp corners) |
+| Fonts | Cursive titles, clean body text | Monospace everywhere |
+| Header | "👑 ✨ 🎀 ✨ 👑" plus a centered cursive "MusicPartner 🎀" | `> musicpartner▌` with a blinking cursor |
+| Wording | "🎀 Be the pilot of your techiee", "💌 Join your techiee", "Cutiees listening", "Your secret code 🎀", "✨ Sparkle meter", "Connected 💖", "🌙 End the party" | "[ broadcast ]", "$ ./share --start", "$ ./join", "ROOM_ID", "[ signal ]", "ONLINE ●", "$ kill -9 share" |
+
+**Start flow (Lite):** every fresh launch opens the chooser (`ui/ModeChooser.kt`): one screen split into two animated "worlds" that meet at a glowing wave, with a "choose your vibe" badge on the seam. The top is the 🎀 Princess world (pink-lavender gradient, twinkling sparkles that rise slowly, soft bokeh, a floating bow, and a cursive "Princess" title with a glow). The bottom is the ⌨ Techie world (dark synthwave grid scrolling toward you, falling neon "data rain", and a glowing `> techie_` title with a blinking cursor). Tapping a world makes it sweep over the whole screen in 0.7 s. Picking one shows a short loading screen (about 2 s, kept light on purpose), then the main screen. Each mode's greeting mentions the other one:
+- 🎀 Princess: a pulsing bow, "Hello Cutiee / your techiee is waiting for you", and a pink progress bar.
+- ⌨ Techie: "> booting musicpartner ... [OK]", "Hello Cutiee / your princess is waiting for you▌", and an ASCII progress bar.
+
+The chooser is skipped while a session is running and after a screen rotation. The code is in `ui/Welcome.kt`, and `MainActivity` holds the `StartStage` (CHOOSE, then LOADING, then MAIN).
+
+All wording, colors, fonts and shapes are in `ui/Vibe.kt` (one `Copy` object per look). The Full edition uses the "Classic" look and has no switch. Notification texts aren't themed yet.
 
 ## 3. How it works
 
@@ -104,7 +126,11 @@ Binary audio frame (host → listeners): `[1 byte = 1][8-byte pts in µs, big-en
 | File | What it does |
 |---|---|
 | `MainActivity.kt` | Permission flow (record-audio, notifications, screen-capture consent forced to "entire screen" on Android 14+) and starting/stopping the services |
-| `ui/AppScreen.kt` | Compose UI: setup (music-control access, server address), Share / Test / Join, live session screen (room code, listeners, connection, upload kbps, audio level meter, capture verdict, now playing, ⏮ Play/Pause ⏭, Stop) |
+| `res` icons | Lite: an "In Sync With You" adaptive icon (a heart with a pink and a neon wave moving together, on a pink/black split background) in `src/lite/res`. Full: a plain play icon in `src/main/res` |
+| `ui/ModeChooser.kt` | Lite start page: the animated two-world mode chooser |
+| `ui/Welcome.kt` | Lite start flow: stages and the short Princess/Techie loading screens |
+| `ui/Vibe.kt` | Looks: Classic (Full), Princess and Techie (Lite). Color schemes, fonts, corner shapes, backgrounds and all on-screen wording |
+| `ui/AppScreen.kt` | Compose UI: setup (music-control access, server address), Share / Test / Join, live session screen (room code with a Copy button, listeners, connection, upload kbps, audio level meter, capture verdict, now playing, ⏮ Play/Pause ⏭, Stop) |
 | `Session.kt` | Shared state (StateFlows) between the services and the UI |
 | `capture/CaptureService.kt` | Host / test foreground service: MediaProjection → AudioRecord playback capture → AAC → relay. Runs friends' commands. **CaptureVerdict** detects "app is playing but nothing is captured", which means that app blocks capture. |
 | `audio/AacEncoder.kt` | PCM → AAC-LC via MediaCodec |
@@ -157,7 +183,7 @@ Android Studio can also open this folder directly if you prefer an IDE.
 
 ### C. First test (step 1)
 1. Open MusicPartner and tap **Turn on** next to music control. Enable MusicPartner in the list.
-2. Tap **Test capture only (no internet)** and accept the record-audio and screen-capture prompts.
+2. Tap **Start sharing** and accept the record-audio and screen-capture prompts. (The separate offline "Test capture" button was removed on 2026-11-13. The capture meter and verdict on the sharing screen do the same job.)
 3. Play a song in YouTube Music, then switch back. The bar should move and show "✓ Capturing audio from YouTube Music".
 4. Repeat with Spotify, YouTube and Chrome. If the app shows "⚠ … is playing but no sound is reaching MusicPartner", that app blocks capture.
 5. Record the results in the table in section 7.

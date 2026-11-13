@@ -33,7 +33,7 @@ android {
             applicationIdSuffix = ".lite"
             versionNameSuffix = "-lite"
             buildConfigField("boolean", "FULL_EDITION", "false")
-            resValue("string", "app_name", "MusicPartner Lite")
+            resValue("string", "app_name", "In Sync With You")
         }
     }
 

@@ -1,5 +1,6 @@
 package com.musicpartner.listen
 
+import com.musicpartner.BuildConfig
 import android.app.Service
 import android.content.Context
 import android.content.Intent
@@ -83,7 +84,7 @@ class ListenerService : Service() {
 
         startForeground(
             Notifications.ID_LISTEN,
-            Notifications.build(this, "Listening with a friend", "Room $code", ListenerService::class.java),
+            Notifications.build(this, listenTitle, "Room $code", ListenerService::class.java),
             ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK,
         )
         running = true
@@ -136,7 +137,7 @@ class ListenerService : Service() {
                         ?.ifEmpty { null } ?: "Room $code"
                     main.post {
                         if (running) Notifications.update(this@ListenerService, Notifications.ID_LISTEN,
-                            Notifications.build(this@ListenerService, "Listening with a friend", text, ListenerService::class.java))
+                            Notifications.build(this@ListenerService, listenTitle, text, ListenerService::class.java))
                     }
                 }
                 "hostAway" -> Session.hostAway.value = true
@@ -159,4 +160,7 @@ class ListenerService : Service() {
             if (!willRetry && reason != null && running) finish(reason)
         }
     }
+
+    private val listenTitle: String
+        get() = if (BuildConfig.FULL_EDITION) "Listening with a friend" else "In Sync With You · listening 💞"
 }

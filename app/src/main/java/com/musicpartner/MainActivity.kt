@@ -15,8 +15,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
+import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import com.musicpartner.capture.CaptureService
@@ -24,11 +23,19 @@ import com.musicpartner.listen.ListenerService
 import com.musicpartner.media.MediaHub
 import com.musicpartner.ui.AppScreen
 import com.musicpartner.ui.Actions
+import com.musicpartner.ui.CuteLoading
+import com.musicpartner.ui.ModeChooser
+import com.musicpartner.ui.StartStage
+import com.musicpartner.ui.VibeId
+import com.musicpartner.ui.VibeTheme
+import com.musicpartner.ui.Vibes
 
 class MainActivity : ComponentActivity() {
 
     private lateinit var prefs: Prefs
     private val notifAccess = mutableStateOf(false)
+    private val vibeId = mutableStateOf(VibeId.CLASSIC)
+    private val stage = mutableStateOf(StartStage.MAIN)
     private var pendingMode: String? = null
 
     private val recordAudioPermission =
@@ -39,7 +46,7 @@ class MainActivity : ComponentActivity() {
                 pendingMode = null
                 Session.message.value =
                     "Android needs the \"record audio\" permission to capture music from other apps. " +
-                        "MusicPartner never uses the microphone."
+                        getString(R.string.app_name) + " never uses the microphone."
             }
         }
 
@@ -61,6 +68,17 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         prefs = Prefs(this)
+        // Princess / Techie looks are Lite-only; the Full edition keeps the classic look.
+        vibeId.value = if (BuildConfig.FULL_EDITION) VibeId.CLASSIC else prefs.vibe
+        // Lite: a fresh start shows the mode chooser, then a short loading screen.
+        // Skipped when a session is already running or after a rotation.
+        stage.value = when {
+            BuildConfig.FULL_EDITION -> StartStage.MAIN
+            Session.role.value != Role.NONE -> StartStage.MAIN
+            savedInstanceState != null ->
+                runCatching { StartStage.valueOf(savedInstanceState.getString(KEY_STAGE) ?: "") }.getOrDefault(StartStage.MAIN)
+            else -> StartStage.CHOOSE
+        }
 
         if (Build.VERSION.SDK_INT >= 33 &&
             checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
@@ -76,8 +94,6 @@ class MainActivity : ComponentActivity() {
             override fun saveServerUrl(url: String) {
                 prefs.serverUrl = url
             }
-
-            override fun startTest() = startCapture(CaptureService.MODE_TEST)
 
             override fun startHost() {
                 if (!validServer()) return
@@ -103,6 +119,12 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
+            override fun setVibe(id: VibeId) {
+                if (BuildConfig.FULL_EDITION) return
+                prefs.vibe = id
+                vibeId.value = id
+            }
+
             override fun stop() {
                 when (Session.role.value) {
                     Role.LISTENER -> ListenerService.stop(this@MainActivity)
@@ -113,17 +135,34 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            MaterialTheme(colorScheme = if (isSystemInDarkTheme()) darkColorScheme() else lightColorScheme()) {
-                Surface(Modifier.fillMaxSize()) {
-                    AppScreen(
-                        notifAccess = notifAccess.value,
-                        initialServerUrl = prefs.serverUrl,
-                        initialCode = prefs.lastCode,
-                        actions = actions,
-                    )
+            VibeTheme(Vibes.of(vibeId.value, isSystemInDarkTheme())) {
+                Surface(
+                    Modifier.fillMaxSize(),
+                    color = if (vibeId.value == VibeId.CLASSIC) MaterialTheme.colorScheme.background else Color.Transparent,
+                    contentColor = MaterialTheme.colorScheme.onBackground,
+                ) {
+                    when (stage.value) {
+                        StartStage.CHOOSE -> ModeChooser { picked ->
+                            actions.setVibe(picked)
+                            stage.value = StartStage.LOADING
+                        }
+                        StartStage.LOADING -> CuteLoading(vibeId.value) { stage.value = StartStage.MAIN }
+                        StartStage.MAIN -> AppScreen(
+                            notifAccess = notifAccess.value,
+                            initialServerUrl = prefs.serverUrl,
+                            actions = actions,
+                        )
+                    }
                 }
             }
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        // Don't replay the loading screen after a rotation.
+        val st = if (stage.value == StartStage.LOADING) StartStage.MAIN else stage.value
+        outState.putString(KEY_STAGE, st.name)
     }
 
     override fun onResume() {
@@ -134,7 +173,7 @@ class MainActivity : ComponentActivity() {
     private fun validServer(): Boolean {
         val url = prefs.serverUrl
         if (url.startsWith("ws://") || url.startsWith("wss://")) return true
-        Session.message.value = "Set the server address first, e.g. wss://your-relay.onrender.com or ws://192.168.1.5:8080"
+        Session.message.value = "Set the server address first, e.g. ${Prefs.DEFAULT_SERVER}"
         return false
     }
 
@@ -156,5 +195,9 @@ class MainActivity : ComponentActivity() {
             mpm.createScreenCaptureIntent()
         }
         projectionLauncher.launch(intent)
+    }
+
+    private companion object {
+        const val KEY_STAGE = "start_stage"
     }
 }
