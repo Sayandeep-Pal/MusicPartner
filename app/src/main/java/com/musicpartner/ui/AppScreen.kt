@@ -123,7 +123,7 @@ private fun Home(notifAccess: Boolean, initialServerUrl: String, initialCode: St
                 actions.saveServerUrl(it)
             },
             label = { Text("Server address") },
-            placeholder = { Text("wss://your-relay.onrender.com") },
+            placeholder = { Text("wss://musicpartner-production.up.railway.app") },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
             modifier = Modifier.fillMaxWidth(),

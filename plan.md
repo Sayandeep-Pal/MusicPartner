@@ -135,6 +135,8 @@ npm test           # automated relay tests
 ```
 In the app, set the server address to `ws://<PC's Wi-Fi IP>:8080` (for example `ws://192.168.1.5:8080`). You may need to allow Node through Windows Firewall.
 
+**Deployed:** the relay runs on Railway at **`wss://musicpartner-production.up.railway.app`** (health check: https://musicpartner-production.up.railway.app/ returns `MusicPartner relay OK`). It deploys from `server/` on the `main` branch using `server/railway.json`. Verified on 2026-11-13: the host created a room, a listener joined, the listener's command reached the host, and audio frames reached the listener. The app uses this address by default.
+
 **For friends in different places**, the server needs a public address. Any of these work:
 - **Render / Railway / Fly.io:** deploy the `server/` folder with start command `npm start`. The platform sets `PORT`. Use the `wss://…` URL in the app. (Free tiers may sleep when idle, so the first connection can take about 30 s.)
 - **Quick test from your PC:** `cloudflared tunnel --url http://localhost:8080` gives a public `https://….trycloudflare.com`. Use it as `wss://….trycloudflare.com` in the app.
@@ -161,8 +163,8 @@ Android Studio can also open this folder directly if you prefer an IDE.
 5. Record the results in the table in section 7.
 
 ### D. Real session (steps 3 + 4)
-1. Host: set the server address, tap **Start sharing**, and send the room code to your friend.
-2. Friend: set the same server address, enter the code, and tap **Join**.
+1. Host: the server address is pre-filled with the Railway relay. Tap **Start sharing**, and send the room code to your friend.
+2. Friend: keep the same server address, enter the code, and tap **Join**.
 3. Play music on the host phone. Try Play/Pause/⏭ from **both** phones, and try with the screen off.
 
 ## 7. Known limitations / risks
